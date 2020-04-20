@@ -4,6 +4,11 @@
 
     <permission android:name="android.permission.INTERNET" />
 
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/logo"
@@ -11,6 +16,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <meta-data
+            android:name="com.google.firebase.ml.vision.DEPENDENCIES"
+            android:value="face" />
+        <!-- To use multiple models: android:value="face,model2,model3" -->
+
         <activity android:name=".FaceRecognitionActivity"></activity>
         <activity android:name=".ForgotPasswordActivity" />
         <activity android:name=".LoginActivity" />
