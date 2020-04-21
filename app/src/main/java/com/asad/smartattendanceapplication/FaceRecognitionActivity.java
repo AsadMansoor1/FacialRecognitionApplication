@@ -40,9 +40,11 @@ import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -62,18 +64,37 @@ public class FaceRecognitionActivity extends AppCompatActivity {
     private GraphicOverlay graphicOverlay;
     Map<String, List<double[]>> contours;
     List<double[]> myContour;
+    private String filename = "SampleFile.txt";
+    private String filepath = "MyFileStorage";
+    private String dataToStoreInFile = "";
+    File myExternalFile;
+
+    public enum allFacialContour {
+        allPoints,
+        face,
+        leftEye,
+        leftEyebrowBottom,
+        leftEyebrowTop,
+        lowerLipBottom,
+        lowerLipTop,
+        noseBottom,
+        noseBridge,
+        rightEye,
+        rightEyebrowBottom,
+        rightEyebrowTop,
+        upperLipBottom,
+        upperLipTop
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_face_recognition);
-
-
         cameraKitView = findViewById(R.id.camera_view);
         cameraButton = findViewById(R.id.btn_detect);
         cameraButton.setText("Capture Image");
         graphicOverlay = findViewById(R.id.graphic_overlay);
-        Map<String, List<double[]>> contours = new HashMap<>();
+        contours = new HashMap<>();
         alertDialog = new AlertDialog.Builder(getApplicationContext())
                 .setTitle("Camera")
                 .setMessage("Image Captured!")
@@ -85,28 +106,30 @@ public class FaceRecognitionActivity extends AppCompatActivity {
         cameraButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(cameraButton.getText() == "Capture Image") {
+                if (cameraButton.getText() == "Capture Image") {
                     cameraKitView.captureImage(new CameraKitView.ImageCallback() {
                         @Override
                         public void onImage(CameraKitView cameraKitView, byte[] bytes) {
                             cameraKitView.onStop();
-                            //alertDialog.show();
 
                             Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                             if (bitmap != null) {
                                 bitmap = Bitmap.createScaledBitmap(bitmap, cameraKitView.getWidth(), cameraKitView.getHeight(), false);
                                 runDetector(bitmap);
                             } else {
-                                Log.d("Bitmap", " bitmap is null means");
+                                Toast toast = Toast.makeText(getApplicationContext(), "Bitmap Contain nul value", Toast.LENGTH_SHORT);
+                                toast.setMargin(50, 50);
+                                toast.show();
                             }
-                            graphicOverlay.clear();
                         }
                     });
-                }
-                else if(cameraButton.getText() == "Store Image"){
-                        Toast toast = Toast.makeText(getApplicationContext(), "myContour list stored to external storage", Toast.LENGTH_SHORT);
-                        toast.setMargin(50, 50);
-                        toast.show();
+                } else if (cameraButton.getText() == "Save Image") {
+                    getDataAndSave(contours);
+                    Toast toast = Toast.makeText(getApplicationContext(), "myContour list stored to external storage", Toast.LENGTH_SHORT);
+                    toast.setMargin(50, 50);
+                    toast.show();
+                    cameraButton.setText("Capture Image");
+                    graphicOverlay.clear();
                 }
             }
         });
@@ -127,32 +150,42 @@ public class FaceRecognitionActivity extends AppCompatActivity {
                                     @Override
                                     public void onSuccess(List<FirebaseVisionFace> faces) {
                                         contours = getContourData(faces.get(0));
-                                        myContour = contours.get("leftEyebrowBottom");
-                                            for(double[] resultContour : myContour) {
-
-                                                for (double singleVal:resultContour){
-                                                    String stringContour = Double.toString(singleVal);
-
-                                                    Toast toast = Toast.makeText(getApplicationContext(), stringContour, Toast.LENGTH_SHORT);
-                                                    toast.setMargin(50, 50);
-                                                    toast.show();
-                                                }
-                                            }
                                         processFaceResult(faces);
                                     }
-                                    })
+                                })
 
                         .addOnFailureListener(
                                 new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
-                                       e.printStackTrace();
+                                        e.printStackTrace();
                                     }
                                 });
     }
+
+    private void getDataAndSave(Map<String, List<double[]>> contours) {
+        String data = "";
+        for (allFacialContour c : allFacialContour.values()) {
+
+            myContour = contours.get(c);
+            data =data + c ;
+            for (double[] resultContour : myContour) {
+                for (double singleVal : resultContour) {
+                    String stringContour = Double.toString(singleVal);
+                    data = data + ","+ stringContour;
+                }
+            }
+            data = data + System.getProperty("line.separator");
+            writeToFile(data);
+            Toast toast = Toast.makeText(getApplicationContext(),c + " Values written Successfully" , Toast.LENGTH_SHORT);
+            toast.setMargin(50, 50);
+            toast.show();
+        }
+    }
+
     private Map<String, List<double[]>> getContourData(FirebaseVisionFace face) {
         Map<String, List<double[]>> contours = new HashMap<>();
-        if(face != null) {
+        if (face != null) {
             contours.put("allPoints", contourPosition(face, FirebaseVisionFaceContour.ALL_POINTS));
             contours.put("face", contourPosition(face, FirebaseVisionFaceContour.FACE));
             contours.put("leftEye", contourPosition(face, FirebaseVisionFaceContour.LEFT_EYE));
@@ -174,11 +207,10 @@ public class FaceRecognitionActivity extends AppCompatActivity {
             contours.put("upperLipTop", contourPosition(face, FirebaseVisionFaceContour.UPPER_LIP_TOP));
 
             return contours;
-        }
-        else{
-            Toast toast=Toast. makeText(getApplicationContext(),"Detected Face is empty in getContourData Method", Toast. LENGTH_SHORT);
-            toast. setMargin(50,50);
-            toast. show();
+        } else {
+            Toast toast = Toast.makeText(getApplicationContext(), "Detected Face is empty in getContourData Method", Toast.LENGTH_SHORT);
+            toast.setMargin(50, 50);
+            toast.show();
             return contours;
         }
     }
@@ -190,7 +222,7 @@ public class FaceRecognitionActivity extends AppCompatActivity {
             List<double[]> result = new ArrayList<double[]>();
 
             for (int i = 0; i < contourPoints.size(); i++) {
-                result.add(new double[] {contourPoints.get(i).getX(), contourPoints.get(i).getY()});
+                result.add(new double[]{contourPoints.get(i).getX(), contourPoints.get(i).getY()});
             }
 
             return result;
@@ -199,13 +231,67 @@ public class FaceRecognitionActivity extends AppCompatActivity {
         return null;
     }
 
-    private void processFaceResult(List<FirebaseVisionFace> faces) {
+    private void     processFaceResult(List<FirebaseVisionFace> faces) {
 
-        for(FirebaseVisionFace face : faces){
+        for (FirebaseVisionFace face : faces) {
             Rect bound = face.getBoundingBox();
             RectOverlay rectOverlay = new RectOverlay(graphicOverlay, bound);
             graphicOverlay.add(rectOverlay);
         }
+        cameraButton.setText("Save Image");
+    }
+
+    protected boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+    protected boolean isExternalStorageReadable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state) ||
+                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+    protected String getDirectoryType() {
+        if (Build.VERSION.SDK_INT >= 19) {
+            return getApplicationContext().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS).getPath();
+        } else {
+            return Environment.getExternalStorageDirectory() + "/Documents";
+        }
+    }
+
+    protected void writeToFile(String dataWithNewLine) {
+        filepath = getDirectoryType();
+        myExternalFile = new File(filepath, filename);
+        FileWriter fr = null;
+        BufferedWriter br = null;
+        try {
+            fr = new FileWriter(myExternalFile, true);
+            br = new BufferedWriter(fr);
+            br.write(dataWithNewLine);
+            Toast toast = Toast.makeText(getApplicationContext(), "Successfully data written to file", Toast.LENGTH_SHORT);
+            toast.setMargin(50, 50);
+            toast.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                br.close();
+                fr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    protected File getTargetFolder() {
+        return getExternalFilesDir(getDirectoryType());
     }
 
     @Override
