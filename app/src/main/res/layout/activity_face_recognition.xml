@@ -6,18 +6,18 @@
     android:layout_height="match_parent"
     tools:context=".FaceRecognitionActivity">
 
-    <com.camerakit.CameraKitView
-        android:id="@+id/camera_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/btn_detect"
-        android:adjustViewBounds="true"
-        android:keepScreenOn="true"
-        app:camera_facing="back"
-        app:camera_flash="auto"
-        app:camera_focus="continuous"
-        app:camera_permissions="camera">
-    </com.camerakit.CameraKitView>
+<!--    <com.camerakit.CameraKitView-->
+<!--        android:id="@+id/camera_view"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:layout_above="@id/btn_detect"-->
+<!--        android:adjustViewBounds="true"-->
+<!--        android:keepScreenOn="true"-->
+<!--        app:camera_facing="back"-->
+<!--        app:camera_flash="auto"-->
+<!--        app:camera_focus="continuous"-->
+<!--        app:camera_permissions="camera">-->
+<!--    </com.camerakit.CameraKitView>-->
 
     <Button
         android:id="@+id/btn_detect"

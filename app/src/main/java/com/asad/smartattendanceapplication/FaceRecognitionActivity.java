@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
@@ -90,9 +91,10 @@ public class FaceRecognitionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_face_recognition);
-        cameraKitView = findViewById(R.id.camera_view);
+
+        //cameraKitView = findViewById(R.id.camera_view);
         cameraButton = findViewById(R.id.btn_detect);
-        cameraButton.setText("Capture Image");
+        //cameraButton.setText("Capture Image");
         graphicOverlay = findViewById(R.id.graphic_overlay);
         contours = new HashMap<>();
         alertDialog = new AlertDialog.Builder(getApplicationContext())
@@ -106,8 +108,16 @@ public class FaceRecognitionActivity extends AppCompatActivity {
         cameraButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Toast toast = Toast.makeText(getApplicationContext(), "Inside onClick", Toast.LENGTH_SHORT);
+                toast.setMargin(50, 50);
+                toast.show();
+                startActivity(new Intent(FaceRecognitionActivity.this, CameraXActivity.class));
+                finish();
                 if (cameraButton.getText() == "Capture Image") {
-                    cameraKitView.captureImage(new CameraKitView.ImageCallback() {
+                    Toast toast2 = Toast.makeText(getApplicationContext(), "Starting new activity", Toast.LENGTH_SHORT);
+                    toast2.setMargin(50, 50);
+                    toast2.show();
+        /*            cameraKitView.captureImage(new CameraKitView.ImageCallback() {
                         @Override
                         public void onImage(CameraKitView cameraKitView, byte[] bytes) {
                             cameraKitView.onStop();
@@ -123,11 +133,11 @@ public class FaceRecognitionActivity extends AppCompatActivity {
                             }
                         }
                     });
-                } else if (cameraButton.getText() == "Save Image") {
+                */} else if (cameraButton.getText() == "Save Image") {
                     getDataAndSave(contours);
-                    Toast toast = Toast.makeText(getApplicationContext(), "myContour list stored to external storage", Toast.LENGTH_SHORT);
-                    toast.setMargin(50, 50);
-                    toast.show();
+                    Toast toast3 = Toast.makeText(getApplicationContext(), "myContour list stored to external storage", Toast.LENGTH_SHORT);
+                    toast3.setMargin(50, 50);
+                    toast3.show();
                     cameraButton.setText("Capture Image");
                     graphicOverlay.clear();
                 }
@@ -150,7 +160,7 @@ public class FaceRecognitionActivity extends AppCompatActivity {
                                     @Override
                                     public void onSuccess(List<FirebaseVisionFace> faces) {
                                         contours = getContourData(faces.get(0));
-                                        processFaceResult(faces);
+                                        processFaceResult(faces); /////////*****///////
                                     }
                                 })
 
@@ -294,29 +304,29 @@ public class FaceRecognitionActivity extends AppCompatActivity {
         return getExternalFilesDir(getDirectoryType());
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        cameraKitView.onStart();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        cameraKitView.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        cameraKitView.onPause();
-        super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        cameraKitView.onStop();
-        super.onStop();
-    }
+//    @Override
+//    protected void onStart() {
+//        super.onStart();
+//        cameraKitView.onStart();
+//    }
+//
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        cameraKitView.onResume();
+//    }
+//
+//    @Override
+//    protected void onPause() {
+//        cameraKitView.onPause();
+//        super.onPause();
+//    }
+//
+//    @Override
+//    protected void onStop() {
+//        cameraKitView.onStop();
+//        super.onStop();
+//    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
