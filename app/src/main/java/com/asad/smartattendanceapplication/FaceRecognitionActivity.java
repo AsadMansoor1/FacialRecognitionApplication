@@ -1,31 +1,23 @@
 package com.asad.smartattendanceapplication;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.DialogInterface;
+
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraManager;
-import android.media.Image;
-import android.media.MediaScannerConnection;
+
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
-import android.util.SparseIntArray;
-import android.view.Surface;
+
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -36,7 +28,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
-import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
+
 import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceContour;
@@ -55,7 +47,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.Buffer;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +61,6 @@ public class FaceRecognitionActivity extends AppCompatActivity {
     private static final String TAG = "ROTATION";
     private CameraKitView cameraKitView;
     private Button cameraButton;
-    private AlertDialog.Builder alertDialog;
     private GraphicOverlay graphicOverlay;
     Map<String, List<double[]>> contours;
     List<double[]> myContour;
@@ -80,7 +71,7 @@ public class FaceRecognitionActivity extends AppCompatActivity {
 
     private String[] allFacialContour = {"allPoints", "face", "leftEye", "leftEyebrowBottom", "leftEyebrowTop", "lowerLipBottom", "lowerLipTop",
             "noseBottom", "noseBridge", "rightEye", "rightEyebrowBottom", "rightEyebrowTop", "upperLipBottom", "upperLipTop"};
-    private String[] arr = new String[14];
+    private String[] currentDetectedArr = new String[14];
     private float[] allConfidences = new float[14];
     private String[] detectedContours = {"209.0,201.0222.0,200.0245.0,200.0263.0,204.0276.0,213.0288.0,223.0294.0,236.0299.0,250.0301.0,266.0302.0,282.0302.0,298.0298.0,315.0291.0,330.0282.0,340.0272.0,350.0263.0,357.0253.0,363.0241.0,367.0232.0,368.0223.0,368.0213.0,365.0205.0,360.0197.0,355.0188.0,346.0180.0,338.0172.0,326.0165.0,310.0161.0,295.0158.0,279.0157.0,264.0155.0,250.0156.0,237.0160.0,225.0167.0,215.0178.0,208.0198.0,203.0161.0,247.0165.0,241.0174.0,238.0185.0,238.0198.0,238.0165.0,250.0169.0,246.0176.0,243.0187.0,243.0202.0,247.0276.0,235.0267.0,230.0256.0,229.0242.0,232.0227.0,235.0272.0,239.0264.0,236.0254.0,235.0242.0,237.0227.0,244.0174.0,261.0175.0,260.0177.0,259.0180.0,257.0185.0,256.0190.0,256.0195.0,257.0199.0,259.0201.0,260.0200.0,261.0197.0,262.0192.0,263.0187.0,264.0182.0,264.0179.0,263.0176.0,263.0237.0,257.0238.0,255.0242.0,252.0247.0,250.0252.0,249.0258.0,249.0262.0,250.0264.0,251.0266.0,252.0264.0,254.0261.0,255.0257.0,257.0251.0,258.0246.0,258.0241.0,257.0238.0,257.0198.0,322.0200.0,321.0203.0,320.0207.0,318.0214.0,316.0222.0,317.0231.0,315.0240.0,315.0247.0,316.0252.0,317.0255.0,318.0202.0,322.0209.0,322.0213.0,322.0218.0,322.0224.0,322.0231.0,321.0238.0,320.0243.0,319.0251.0,318.0247.0,319.0243.0,320.0238.0,321.0231.0,322.0224.0,323.0218.0,323.0213.0,323.0209.0,323.0206.0,322.0252.0,321.0247.0,324.0241.0,328.0234.0,331.0226.0,332.0218.0,332.0212.0,330.0206.0,327.0202.0,325.0215.0,253.0217.0,298.0204.0,302.0220.0,303.0239.0,298.0",
     "209.0,201.0222.0,200.0245.0,200.0263.0,204.0276.0,213.0288.0,223.0294.0,236.0299.0,250.0301.0,266.0302.0,282.0302.0,298.0298.0,315.0291.0,330.0282.0,340.0272.0,350.0263.0,357.0253.0,363.0241.0,367.0232.0,368.0223.0,368.0213.0,365.0205.0,360.0197.0,355.0188.0,346.0180.0,338.0172.0,326.0165.0,310.0161.0,295.0158.0,279.0157.0,264.0155.0,250.0156.0,237.0160.0,225.0167.0,215.0178.0,208.0198.0,203.0",
@@ -152,8 +143,8 @@ public class FaceRecognitionActivity extends AppCompatActivity {
                     toast.setMargin(50, 50);
                     toast.show();
                     cameraButton.setText("Capture Image");
-                    //graphicOverlay.clear();
-                    //cameraKitView.onStart();
+                    graphicOverlay.clear();
+                    cameraKitView.onStart();
                 }
             }
         });
@@ -198,7 +189,7 @@ public class FaceRecognitionActivity extends AppCompatActivity {
                 oneLine = oneLine +  StringUtils.join(ArrayUtils.toObject(resultContour), ",");
 
             }
-            arr[i] = oneLine;
+            currentDetectedArr[i] = oneLine;
             allLines = allLines + oneLine;
             allLines = allLines + System.getProperty("line.separator");
             }
@@ -208,13 +199,13 @@ public class FaceRecognitionActivity extends AppCompatActivity {
         readFile();
         //writeToFile(allLines);
         //createFile();
-        for(int j=0; i<allConfidences.length; j++){
+        /*for(int j=0; i<allConfidences.length; j++){
             Toast toast2 = Toast.makeText(getApplicationContext(), "Data Written to file", Toast.LENGTH_SHORT);
             toast2.setMargin(50, 50);
             toast2.show();
             String arr[] = StringUtils.join(ArrayUtils.toObject(a), ",");
             allConfidences[j] = comparisonConfidence(myData, allLines);
-        }
+        }*/
 //        float avgConfidence = calculateAverage(allConfidences);
 //        if(avgConfidence >= 50){
 //            Toast toast1 = Toast.makeText(getApplicationContext(), "Same Person", Toast.LENGTH_SHORT);
@@ -322,7 +313,7 @@ public class FaceRecognitionActivity extends AppCompatActivity {
             {
                 i++;
                 String []arrInFile = line.split(",");
-                String []arrInOnCameraDetected = arr[i].split(",");
+                String []arrInOnCameraDetected = currentDetectedArr[i].split(",");
                 allConfidences[i] = comparisonConfidence(arrInFile, arrInOnCameraDetected);
 
 //                double number []= new double[length];
@@ -509,17 +500,21 @@ public class FaceRecognitionActivity extends AppCompatActivity {
 
             String line = "";
             int i =-1;
+            String arr1[] ;
+            String arr2[] ;
             while((line=br.readLine())!=null)
             {
                 i++;
+                arr1 = currentDetectedArr[i].split(",");
+                arr2 = line.split(",");
                 ///////// For the purpose of showing that how many values are comma separated in file that is got read
                 arrInFile[i] = line;
-                int a = arrInFile.length;
-                String strA = Integer.toString(a);
+                allConfidences[i] = comparisonConfidence(arr1, arr2);
+                //float avg = calculateAverage(allConfidences);
 
-                Toast toast5 = Toast.makeText(getApplicationContext(),"Length Of String A is "+strA, Toast.LENGTH_LONG);
-                toast5.setMargin(50, 50);
-                toast5.show();
+                Toast toast8 = Toast.makeText(getApplicationContext(),"Confidence level of "+ i +"th Contour is "+allConfidences[i], Toast.LENGTH_SHORT);
+                toast8.setMargin(50, 50);
+                toast8.show();
 
                 ///////// For the purpose of showing that how many values are comma separated in file that is got read
             }
